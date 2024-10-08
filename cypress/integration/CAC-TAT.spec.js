@@ -51,7 +51,7 @@ describe('Central de Atendimento ao Cliente TAT', function() {
             .should('have.text', '')
     })
 
-    it.only('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
+    it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário', function() {
         cy.get('input[id=firstName]').type('One').should('have.value', 'One')
         cy.get('input[id=lastName]').type('Two').should('have.value', 'Two')
         cy.get('input[id=email]').type('onetwo@numbers.com').should('have.value', 'onetwo@numbers.com')
@@ -128,4 +128,54 @@ describe('Central de Atendimento ao Cliente TAT - checkbox', function() {
     it('marca ambos checkboxes, depois desmarca o último', function() {
         cy.get('input[type=checkbox]').check().should('be.checked').last().uncheck().should('not.be.checked')
     })
+})
+
+describe('Central de Atendimento ao Cliente TAT - upload', function(){
+    beforeEach(function(){
+        cy.visit('./src/index.html');
+    })
+
+    it('seleciona um arquivo da pasta fixtures', function() {
+        cy.get('input[type=file]#file-upload')
+        .should('not.have.value')
+        .selectFile('./cypress/Fixtures/example.json')
+        .should(function($input){
+            expect($input[0].files[0].name).to.equal('example.json')
+        })
+    })
+
+    it('seleciona um arquivo simulando um drag-and-drop', function() {
+        cy.get('input[type=file]#file-upload')
+        .should('not.have.value')
+        .selectFile('./cypress/Fixtures/example.json', { action: 'drag-drop' })
+        .should(function($input){
+            expect($input[0].files[0].name).to.equal('example.json')
+        })
+    })
+
+    it('seleciona um arquivo utilizando uma fixture para a qual foi dada um alias', function () {
+        cy.fixture('example.json').as('sampleFile')
+        cy.get('input[type=file]#file-upload')
+            .selectFile('@sampleFile')
+            .should(function($input) {
+                expect($input[0].files[0].name).to.equal('example.json')
+            })
+    })
+})
+
+describe('Central de Atendimento ao Cliente TAT - links', function(){
+    beforeEach(function(){
+        cy.visit('./src/index.html');
+    })
+
+    it('verifica que a política de privacidade abre em outra aba sem a necessidade de um clique', function() {
+        cy.get('#privacy a').should('have.attr', 'target', '_blank')
+    })
+
+    it('acessa a página da política de privacidade removendo o target e então clicando no link', function() {
+        cy.get('#privacy a').invoke('removeAttr', 'target').click()
+
+        cy.contains('Talking About Testing').should('be.visible')
+    })
+
 })
